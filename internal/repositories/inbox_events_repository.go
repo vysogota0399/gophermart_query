@@ -148,7 +148,7 @@ func (rep *InboxEventsRepository) ReserveOrderUpdatedEvent(ctx context.Context) 
 	return e, nil
 }
 
-func (rep *InboxEventsRepository) SetState(ctx context.Context, uuid string, newState string) error {
+func (rep *InboxEventsRepository) SetState(ctx context.Context, uuid string, newState int32) error {
 	tx, err := rep.strg.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return fmt.Errorf("inbox_events_repository: create tx error %w", err)
@@ -162,7 +162,7 @@ func (rep *InboxEventsRepository) SetState(ctx context.Context, uuid string, new
 	return tx.Commit(ctx)
 }
 
-func (rep *InboxEventsRepository) setStateTX(ctx context.Context, uuid string, newState string, tx pgx.Tx) error {
+func (rep *InboxEventsRepository) setStateTX(ctx context.Context, uuid string, newState int32, tx pgx.Tx) error {
 	if _, err := tx.Exec(ctx,
 		`
 			UPDATE inbox_events

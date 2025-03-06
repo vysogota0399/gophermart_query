@@ -24,6 +24,6 @@ func (h *Handler) GetWithdrawals(ctx context.Context, params *query_accounting.G
 	return h.GetWithdrawalsHandler.GetWithdrawals(ctx, params)
 }
 
-func (h *Handler) GetBalance(ctx context.Context, params *query_accounting.BalanceParams) (*query_accounting.BalanceResponse, error) {
+func (h *Handler) GetBalance(ctx context.Context, params *query_accounting.GetBalanceParams) (*query_accounting.GetBalanceResponse, error) {
 	return h.GetBalanceHandler.GetBalance(ctx, params)
 }

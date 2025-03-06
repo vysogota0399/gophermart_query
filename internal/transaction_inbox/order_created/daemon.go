@@ -27,7 +27,7 @@ type Daemon struct {
 
 type InboxEventsRepository interface {
 	ReserveOrderCreatedEvent(ctx context.Context) (*models.OrderCreatedEvent, error)
-	SetState(ctx context.Context, uuid string, newState string) error
+	SetState(ctx context.Context, uuid string, newState int32) error
 }
 
 type OrdersRepository interface {

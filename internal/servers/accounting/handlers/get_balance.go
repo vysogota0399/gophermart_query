@@ -4,12 +4,13 @@ import (
 	"context"
 
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
 
 	query_accounting "github.com/vysogota0399/gophermart_protos/gen/queries/accounting"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
 	"github.com/vysogota0399/gophermart_query/internal/repositories"
+	money "google.golang.org/genproto/googleapis/type/money"
 )
 
 type GetBalanceHandler struct {
@@ -25,16 +26,16 @@ func NewGetBalanceHandler(repository BalanceRepository, lg *logging.ZapLogger) *
 	return &GetBalanceHandler{lg: lg, repository: repository}
 }
 
-func (h GetBalanceHandler) GetBalance(ctx context.Context, params *query_accounting.BalanceParams) (*query_accounting.BalanceResponse, error) {
-	balance, err := h.repository.Balance(ctx, params.AccountId)
+func (h GetBalanceHandler) GetBalance(ctx context.Context, params *query_accounting.GetBalanceParams) (*query_accounting.GetBalanceResponse, error) {
+	balance, err := h.repository.Balance(ctx, params.Account.Id)
 	if err != nil {
 		h.lg.ErrorCtx(ctx, "calculate balance failed", zap.Error(err))
 
 		return nil, status.Errorf(codes.Internal, "calculate balance failed")
 	}
 
-	return &query_accounting.BalanceResponse{
-		Balance:   float64(balance.Balance) / 100,
-		Withdrawn: float64(balance.Credit) /100,
+	return &query_accounting.GetBalanceResponse{
+		Balance:   &money.Money{Units: balance.Balance, CurrencyCode: "RUB"},
+		Withdrawn: &money.Money{Units: balance.Credit, CurrencyCode: "RUB"},
 	}, nil
 }

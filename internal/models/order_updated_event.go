@@ -7,13 +7,13 @@ import (
 
 type OrderUpdatedEvent struct {
 	UUID  string
-	State string
+	State int32
 	Name  string
 	Meta  *OrderUpdatedEventMeta
 }
 
 type OrderUpdatedEventMeta struct {
-	State string
+	State int32
 	UUID  string
 }
 

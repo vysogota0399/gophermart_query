@@ -107,23 +107,18 @@ func (cns *Consumer) processMessage(ctx context.Context) error {
 
 	cns.lg.InfoCtx(ctx, "consumed message", zap.Any("message", &payload))
 
-	updatedAt, err := time.Parse(time.RFC3339Nano, payload.UploadedAt)
-	if err != nil {
-		return fmt.Errorf("order_created/consumer: unmarshal message error %w", err)
-	}
-
 	if err := cns.events.SaveOrderCreated(
 		ctx,
 		&models.OrderCreatedEvent{
-			UUID:  payload.EventUuid,
+			UUID:  payload.EventUuid.Value,
 			State: models.OrderEventNewState,
 			Name:  repositories.OrderCreatedEventName,
 			Meta: &models.OrderCreatedEventMeta{
-				UUID:       payload.Uuid,
+				UUID:       payload.Uuid.Value,
 				Number:     payload.Number,
-				State:      payload.State,
-				UploadedAt: updatedAt,
-				AccountID:  payload.AccountId,
+				State:      int32(payload.State),
+				UploadedAt: payload.UploadedAt.AsTime(),
+				AccountID:  payload.Account.Id,
 			},
 		},
 	); err != nil {

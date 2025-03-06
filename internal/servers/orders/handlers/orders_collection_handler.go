@@ -2,14 +2,17 @@ package handlers
 
 import (
 	"context"
-	"time"
 
+	"github.com/vysogota0399/gophermart_protos/gen/common"
+	"github.com/vysogota0399/gophermart_protos/gen/entities"
 	query_orders "github.com/vysogota0399/gophermart_protos/gen/queries/orders"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
 	"github.com/vysogota0399/gophermart_query/internal/models"
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
+	money "google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
 type OrdersCollectionHandler struct {
@@ -27,22 +30,22 @@ func NewOrdersCollectionHandler(orders OrdersRepository, lg *logging.ZapLogger) 
 	return &OrdersCollectionHandler{orders: orders, lg: lg}
 }
 
-func (h *OrdersCollectionHandler) OrdersCollection(ctx context.Context, params *query_orders.QueryOrdersParams) (*query_orders.QureyOrdersResponse, error) {
-	orders, err := h.orders.SerchByAccoutID(ctx, params.AccountId)
+func (h *OrdersCollectionHandler) OrdersCollection(ctx context.Context, params *query_orders.QueryOrdersRequest) (*query_orders.QureyOrdersResponse, error) {
+	orders, err := h.orders.SerchByAccoutID(ctx, params.Account.Id)
 	if err != nil {
 		h.lg.ErrorCtx(ctx, "search orders failed", zap.Error(err), zap.Any("params", params))
 		return nil, status.Errorf(codes.Internal, "search orders failed")
 	}
 
-	responseOrders := []*query_orders.Order{}
+	responseOrders := []*entities.Order{}
 
 	for _, order := range orders {
-		responseOrders = append(responseOrders, &query_orders.Order{
-			State:      order.State,
+		responseOrders = append(responseOrders, &entities.Order{
+			State:      entities.OrderStates(order.State),
 			Number:     order.Number,
-			Accrual:    float64(order.Accrual) / 100,
-			Uuid:       order.UUID,
-			UploadedAt: order.UploadedAt.Format(time.RFC3339Nano),
+			Accrual:    &money.Money{Units: order.Accrual, CurrencyCode: "RUB"},
+			Uuid:       &common.Uuid{Value: order.UUID},
+			UploadedAt: timestamppb.New(order.UploadedAt),
 		})
 	}
 

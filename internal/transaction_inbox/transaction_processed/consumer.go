@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/segmentio/kafka-go"
+	"github.com/vysogota0399/gophermart_protos/gen/entities"
 	"github.com/vysogota0399/gophermart_protos/gen/events"
 	"github.com/vysogota0399/gophermart_query/internal/config"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
@@ -107,13 +108,8 @@ func (cns *Consumer) processMessage(ctx context.Context) error {
 
 	cns.lg.InfoCtx(ctx, "consumed message", zap.Any("message", &payload))
 
-	processedAt, err := time.Parse(time.RFC3339Nano, payload.ProcessedAt)
-	if err != nil {
-		return fmt.Errorf("order_created/consumer: unmarshal message error %w", err)
-	}
-
 	var operation string
-	if payload.Operation == events.TransactionOperations_DEBIT {
+	if payload.Operation == entities.TransactionOperations_TRANSACTIONS_OPERATIONS_DEBIT {
 		operation = "debit"
 	} else {
 		operation = "credit"
@@ -122,17 +118,17 @@ func (cns *Consumer) processMessage(ctx context.Context) error {
 	if err := cns.events.SaveTransactionCreated(
 		ctx,
 		&models.TransactionEvent{
-			UUID:  payload.EventUuid,
+			UUID:  payload.EventUuid.Value,
 			State: models.OrderEventNewState,
 			Name:  repositories.TransactionProcessedEventName,
 			Meta: &models.TransactionEventMeta{
-				UUID:            payload.Uuid,
-				Amount:          payload.Amount,
-				AccountID:       payload.AccountId,
-				TransactionUUID: payload.Uuid,
+				UUID:            payload.Uuid.Value,
+				Amount:          payload.Amount.Units,
+				AccountID:       payload.Account.Id,
+				TransactionUUID: payload.Uuid.Value,
 				OrderNumber:     payload.OrderNumber,
 				Operation:       operation,
-				ProcessedAt:     processedAt,
+				ProcessedAt:     payload.ProcessedAt.AsTime(),
 			},
 		},
 	); err != nil {

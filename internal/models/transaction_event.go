@@ -7,15 +7,15 @@ import (
 )
 
 const (
-	TransactionEventNewState        = "new"
-	TransactionEventProcessingState = "processing"
-	TransactionEventFinishedState   = "finished"
-	TransactionEventFailedState     = "failed"
+	TransactionEventNewState int32 = iota
+	TransactionEventProcessingState
+	TransactionEventFinishedState
+	TransactionEventFailedState
 )
 
 type TransactionEvent struct {
 	UUID  string                `json:"uuid"`
-	State string                `json:"state"`
+	State int32                 `json:"state"`
 	Name  string                `json:"name"`
 	Meta  *TransactionEventMeta `json:"meta"`
 }

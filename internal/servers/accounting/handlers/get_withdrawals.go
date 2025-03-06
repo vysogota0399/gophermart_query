@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"context"
-	"time"
 
 	"go.uber.org/zap"
-	"google.golang.org/grpc/codes"
+	money "google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/codes"
+	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
 	query_accounting "github.com/vysogota0399/gophermart_protos/gen/queries/accounting"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
@@ -30,7 +31,7 @@ func (h GetWithdrawalsHandler) GetWithdrawals(
 	ctx context.Context,
 	params *query_accounting.GetWithdrawalsParams,
 ) (*query_accounting.GetWithdrawalsResponse, error) {
-	debits, err := h.repository.Debits(ctx, params.AccountId)
+	debits, err := h.repository.Debits(ctx, params.Account.Id)
 	if err != nil {
 		h.lg.ErrorCtx(ctx, "get withdrawals failed", zap.Error(err))
 		return nil, status.Errorf(codes.Internal, "get withdrawals failed")
@@ -42,8 +43,8 @@ func (h GetWithdrawalsHandler) GetWithdrawals(
 			withdrawals,
 			&query_accounting.Withdrawal{
 				OrderNumber: d.OrderNumber,
-				Sum:         float64(d.Amount)/100,
-				ProcessedAt: d.ProcessedAt.Format(time.RFC3339Nano),
+				Sum:         &money.Money{Units: d.Amount, CurrencyCode: "RUB"},
+				ProcessedAt: timestamppb.New(d.ProcessedAt),
 			},
 		)
 	}

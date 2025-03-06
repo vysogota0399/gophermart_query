@@ -33,7 +33,7 @@ type OrdersRepository interface {
 }
 type InboxEventsRepository interface {
 	ReserveTransactionProcessedEvent(ctx context.Context) (*models.TransactionEvent, error)
-	SetState(ctx context.Context, uuid string, newState string) error
+	SetState(ctx context.Context, uuid string, newState int32) error
 }
 
 type TransactionsRepository interface {

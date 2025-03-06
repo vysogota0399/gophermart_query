@@ -8,15 +8,15 @@ import (
 )
 
 const (
-	OrderEventNewState        = "new"
-	OrderEventProcessingState = "processing"
-	OrderEventFinishedState   = "finished"
-	OrderEventFailedState     = "failed"
+	OrderEventNewState int32 = iota
+	OrderEventProcessingState
+	OrderEventFinishedState
+	OrderEventFailedState
 )
 
 type OrderCreatedEvent struct {
 	UUID  string
-	State string
+	State int32
 	Name  string
 	Meta  *OrderCreatedEventMeta
 }
@@ -24,7 +24,7 @@ type OrderCreatedEvent struct {
 type OrderCreatedEventMeta struct {
 	UUID       string
 	Number     string
-	State      string
+	State      int32
 	Accrual    int64
 	UploadedAt time.Time
 	AccountID  int64
