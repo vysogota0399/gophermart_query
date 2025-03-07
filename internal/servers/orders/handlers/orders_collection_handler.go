@@ -6,12 +6,12 @@ import (
 	"github.com/vysogota0399/gophermart_protos/gen/common"
 	"github.com/vysogota0399/gophermart_protos/gen/entities"
 	query_orders "github.com/vysogota0399/gophermart_protos/gen/queries/orders"
+	"github.com/vysogota0399/gophermart_protos/utils/amount"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
 	"github.com/vysogota0399/gophermart_query/internal/models"
 	"go.uber.org/zap"
-	money "google.golang.org/genproto/googleapis/type/money"
-	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -43,7 +43,7 @@ func (h *OrdersCollectionHandler) OrdersCollection(ctx context.Context, params *
 		responseOrders = append(responseOrders, &entities.Order{
 			State:      entities.OrderStates(order.State),
 			Number:     order.Number,
-			Accrual:    &money.Money{Units: order.Accrual, CurrencyCode: "RUB"},
+			Accrual:    amount.FromInt64(order.Accrual).Money,
 			Uuid:       &common.Uuid{Value: order.UUID},
 			UploadedAt: timestamppb.New(order.UploadedAt),
 		})

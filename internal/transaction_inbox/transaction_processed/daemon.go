@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 
+	"github.com/vysogota0399/gophermart_protos/utils/amount"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
 	"github.com/vysogota0399/gophermart_query/internal/models"
 	"github.com/vysogota0399/gophermart_query/internal/repositories"
@@ -122,7 +123,7 @@ func (dmn *Daemon) processEvent(ctx context.Context) error {
 	tx, err := dmn.transactions.BeginTX(ctx, pgx.TxOptions{})
 	if err != nil {
 		if err := dmn.events.SetState(ctx, e.UUID, models.TransactionEventFailedState); err != nil {
-			return fmt.Errorf("set processing event  %s state error %w", models.TransactionEventFailedState, err)
+			return fmt.Errorf("set processing event  %d state error %w", models.TransactionEventFailedState, err)
 		}
 
 		return fmt.Errorf("find first unprocessed event error %w", err)
@@ -133,13 +134,13 @@ func (dmn *Daemon) processEvent(ctx context.Context) error {
 		UUID:        e.Meta.UUID,
 		OrderNumber: e.Meta.OrderNumber,
 		AccountID:   e.Meta.AccountID,
-		Amount:      e.Meta.Amount,
+		Amount:      &models.TransactionAmount{Amount: amount.FromInt64(e.Meta.Amount)},
 		Operation:   e.Meta.Operation,
 		ProcessedAt: e.Meta.ProcessedAt,
 	}
 	if err := dmn.transactions.Create(ctx, transaction, tx); err != nil {
 		if err := dmn.events.SetState(ctx, e.UUID, models.TransactionEventFailedState); err != nil {
-			return fmt.Errorf("set processing event %s state error %w", models.TransactionEventFailedState, err)
+			return fmt.Errorf("set processing event %d state error %w", models.TransactionEventFailedState, err)
 		}
 
 		return fmt.Errorf("create transaction(%+v) error %w", transaction, err)
@@ -152,14 +153,14 @@ func (dmn *Daemon) processEvent(ctx context.Context) error {
 
 	if err := dmn.orders.UpdateAccrualTX(ctx, order, tx); err != nil {
 		if err := dmn.events.SetState(ctx, e.UUID, models.TransactionEventFailedState); err != nil {
-			return fmt.Errorf("set processing event %s state error %w", models.TransactionEventFailedState, err)
+			return fmt.Errorf("set processing event %d state error %w", models.TransactionEventFailedState, err)
 		}
 
 		return fmt.Errorf("update accrual failed error %w", err)
 	}
 
 	if err := dmn.events.SetState(ctx, e.UUID, models.TransactionEventFinishedState); err != nil {
-		return fmt.Errorf("set processing event %s state error %w", models.TransactionEventFinishedState, err)
+		return fmt.Errorf("set processing event %d state error %w", models.TransactionEventFinishedState, err)
 	}
 
 	return dmn.transactions.CommitTX(ctx, tx)

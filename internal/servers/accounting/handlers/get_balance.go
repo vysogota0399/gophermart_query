@@ -4,13 +4,12 @@ import (
 	"context"
 
 	"go.uber.org/zap"
-	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	query_accounting "github.com/vysogota0399/gophermart_protos/gen/queries/accounting"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
 	"github.com/vysogota0399/gophermart_query/internal/repositories"
-	money "google.golang.org/genproto/googleapis/type/money"
 )
 
 type GetBalanceHandler struct {
@@ -35,7 +34,7 @@ func (h GetBalanceHandler) GetBalance(ctx context.Context, params *query_account
 	}
 
 	return &query_accounting.GetBalanceResponse{
-		Balance:   &money.Money{Units: balance.Balance, CurrencyCode: "RUB"},
-		Withdrawn: &money.Money{Units: balance.Credit, CurrencyCode: "RUB"},
+		Balance:   balance.Balance.Money,
+		Withdrawn: balance.Credit.Money,
 	}, nil
 }

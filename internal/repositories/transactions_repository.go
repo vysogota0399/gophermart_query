@@ -7,6 +7,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 
+	"github.com/vysogota0399/gophermart_protos/utils/amount"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
 	"github.com/vysogota0399/gophermart_query/internal/models"
 	"github.com/vysogota0399/gophermart_query/internal/storage"
@@ -17,8 +18,10 @@ type TransactionsRepository struct {
 	lg   *logging.ZapLogger
 }
 
-var TransactionDebit = "debit"
-var TransactionCredit = "credit"
+const (
+	TransactionDebit  = "debit"
+	TransactionCredit = "credit"
+)
 
 type TransactionsStorage interface {
 	BeginTx(ctx context.Context, opts pgx.TxOptions) (pgx.Tx, error)
@@ -37,7 +40,7 @@ func (rep *TransactionsRepository) Create(ctx context.Context, in *models.Transa
 		  INSERT INTO transactions(uuid, order_number, account_id, amount, operation, processed_at)
 			VALUES ($1, $2, $3, $4, $5, $6)
 		`,
-		in.UUID, in.OrderNumber, in.AccountID, in.Amount, in.Operation, in.ProcessedAt,
+		in.UUID, in.OrderNumber, in.AccountID, in.Amount.NanoBonuses(), in.Operation, in.ProcessedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("transactions_repository: create transactions record error %w", err)
@@ -47,9 +50,9 @@ func (rep *TransactionsRepository) Create(ctx context.Context, in *models.Transa
 }
 
 type Balance struct {
-	Credit  int64
-	Debit   int64
-	Balance int64
+	Credit  *amount.Amount
+	Debit   *amount.Amount
+	Balance *amount.Amount
 }
 
 func (rep *TransactionsRepository) Debits(ctx context.Context, accountID int64) ([]*models.Transaction, error) {
@@ -80,7 +83,7 @@ func (rep *TransactionsRepository) Debits(ctx context.Context, accountID int64) 
 			&debit.UUID,
 			&debit.OrderNumber,
 			&debit.AccountID,
-			&debit.Amount,
+			debit.Amount,
 			&debit.ProcessedAt,
 		); err != nil {
 			return nil, fmt.Errorf("transactions_repository: scan transactions error %w", err)
@@ -112,9 +115,9 @@ func (rep *TransactionsRepository) Balance(ctx context.Context, accountID int64)
 
 	tx.Commit(ctx)
 	return &Balance{
-		Credit:  credit,
-		Debit:   debit,
-		Balance: debit - credit,
+		Credit:  amount.FromInt64(credit),
+		Debit:   amount.FromInt64(debit),
+		Balance: amount.FromInt64(debit - credit),
 	}, nil
 }
 

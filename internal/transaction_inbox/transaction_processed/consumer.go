@@ -8,6 +8,7 @@ import (
 	"github.com/segmentio/kafka-go"
 	"github.com/vysogota0399/gophermart_protos/gen/entities"
 	"github.com/vysogota0399/gophermart_protos/gen/events"
+	"github.com/vysogota0399/gophermart_protos/utils/amount"
 	"github.com/vysogota0399/gophermart_query/internal/config"
 	"github.com/vysogota0399/gophermart_query/internal/logging"
 	"github.com/vysogota0399/gophermart_query/internal/models"
@@ -123,7 +124,7 @@ func (cns *Consumer) processMessage(ctx context.Context) error {
 			Name:  repositories.TransactionProcessedEventName,
 			Meta: &models.TransactionEventMeta{
 				UUID:            payload.Uuid.Value,
-				Amount:          payload.Amount.Units,
+				Amount:          amount.New(payload.Amount).NanoBonuses(),
 				AccountID:       payload.Account.Id,
 				TransactionUUID: payload.Uuid.Value,
 				OrderNumber:     payload.OrderNumber,

@@ -4,9 +4,8 @@ import (
 	"context"
 
 	"go.uber.org/zap"
-	money "google.golang.org/genproto/googleapis/type/money"
-	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
 
 	query_accounting "github.com/vysogota0399/gophermart_protos/gen/queries/accounting"
@@ -43,7 +42,7 @@ func (h GetWithdrawalsHandler) GetWithdrawals(
 			withdrawals,
 			&query_accounting.Withdrawal{
 				OrderNumber: d.OrderNumber,
-				Sum:         &money.Money{Units: d.Amount, CurrencyCode: "RUB"},
+				Sum:         d.Amount.Money,
 				ProcessedAt: timestamppb.New(d.ProcessedAt),
 			},
 		)
