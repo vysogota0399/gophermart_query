@@ -83,7 +83,7 @@ func (rep *TransactionsRepository) Debits(ctx context.Context, accountID int64) 
 			&debit.UUID,
 			&debit.OrderNumber,
 			&debit.AccountID,
-			debit.Amount,
+			&debit.Amount,
 			&debit.ProcessedAt,
 		); err != nil {
 			return nil, fmt.Errorf("transactions_repository: scan transactions error %w", err)
