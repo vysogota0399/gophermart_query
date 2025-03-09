@@ -1,0 +1,51 @@
+x-app: &app
+  labels:
+    logging: "promtail"
+    logging_jobname: "containerlogs"
+  build:
+    context: ../
+    dockerfile: .docker/Dockerfile
+  tty: true
+  stdin_open: true
+  environment:
+    - LOG_LEVEL=-1
+    - DATABASE_DSN=postgres://postgres:secret@db:5432/gophermart_query_development
+    - KAFKA_BROKERS=kafka-1:9092,kafka-2:9092,kafka-3:9092
+    - ORDERS_SERVER_HTTP_ADDRESS=0.0.0.0:8030
+    - ACCOUNTING_SERVER_HTTP_ADDRESS=0.0.0.0:8040
+    - DAEMON_WORKERS_COUNT=1
+    - DAEMON_ORDER_CREATED_EVENT_POLL_INTERVAL=100
+    - DAEMON_ORDER_UPDATED_EVENT_POLL_INTERVAL=100
+    - DAEMON_TRANSACTIO_PROCESSED_EVENT_POLL_INTERVAL=100
+    - KAFKA_ORDER_UPDATED_MAX_WAIT_INTERWAL=1000
+    - KAFKA_ORDER_CREATED_MAX_WAIT_INTERWAL=1000
+    - KAFKA_TRANSACTION_PROCESSED_MAX_WAIT_INTERWAL=1000
+
+services:
+  query_order_created_consumer:
+    <<: *app
+    container_name: gophermart-query-order_created_consumer
+    command:
+      ./order_created_consumer
+
+  query_order_updated_consumer:
+    <<: *app
+    container_name: gophermart-query-order_updated_consumer
+    command:
+      ./order_updated_consumer
+
+  query_transaction_processed_consumer:
+    <<: *app
+    container_name: gophermart-query-transaction_processed_consumer
+    command:
+      ./order_updated_consumer
+
+  grpc_server:
+    <<: *app
+    container_name: gophermart-query-server
+    command:
+      ./grpc_server
+
+networks:
+  default:
+    name: gophermart-network
